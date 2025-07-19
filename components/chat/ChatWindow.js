@@ -76,7 +76,6 @@ export default function ChatWindow() {
           textAlign: 'center',
           paddingHorizontal: 32
         }}>
-          Start a new conversation to begin your personalized learning journey
         </Text>
       </View>
     )

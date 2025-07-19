@@ -1,45 +1,78 @@
+import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import {
-  View,
-  Text,
-  Modal,
-  TouchableOpacity,
-  ScrollView,
-  Switch,
-  TextInput,
   Alert,
   Linking,
-  Share
+  Modal,
+  ScrollView,
+  Share,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { useAuth } from '../../contexts/AuthContext'
 import { useChat } from '../../contexts/ChatContext'
+import { auth } from '../../firebaseConfig'
 
 export default function SettingsModal({ visible, onClose }) {
   const { user, signOut, updateProfile, updatePreferences } = useAuth()
   const { chats, clearAllChats } = useChat()
   const [editingProfile, setEditingProfile] = useState(false)
   const [editName, setEditName] = useState(user?.name || '')
+  const router = useRouter();
 
   if (!user) return null
+
+  // const handleSignOut = () => {
+  //   Alert.alert(
+  //     'Sign Out',
+  //     'Are you sure you want to sign out?',
+  //     [
+  //       { text: 'Cancel', style: 'cancel' },
+  //       {
+  //         text: 'Sign Out',
+  //         style: 'destructive',
+  //         onPress: () => {
+  //           onClose()
+  //           signOut()
+  //         }
+  //       }
+  //     ]
+  //   )
+  // }
 
   const handleSignOut = () => {
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
         {
           text: 'Sign Out',
           style: 'destructive',
-          onPress: () => {
-            onClose()
-            signOut()
-          }
-        }
+          onPress: async () => {
+            try {
+              await signOut(auth);
+              onClose(); // Close the modal
+              
+              // Navigate to login screen immediately
+              router.replace('../screens/LoginScreen'); // or wherever your login screen is
+              
+            } catch (error) {
+              console.error('Error signing out:', error);
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            }
+          },
+        },
       ]
-    )
-  }
+    );
+  };
 
   const handleClearAllChats = () => {
     Alert.alert(

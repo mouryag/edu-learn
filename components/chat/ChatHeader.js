@@ -79,7 +79,7 @@ export default function ChatHeader() {
           <TouchableOpacity
             onPress={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
           >
-            <Icon name="bars" size={20} color="rgba(255,255,255,0.7)" />
+            {/* <Icon name="bars" size={20} color="rgba(255,255,255,0.7)" /> */}
           </TouchableOpacity>
         )}
         

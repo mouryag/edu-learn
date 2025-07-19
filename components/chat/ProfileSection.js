@@ -158,7 +158,7 @@ export default function ProfileSection({ onOpenSettings, isCollapsed = false }) 
       </TouchableOpacity>
 
       {/* Logout Button - Separate from settings */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         onPress={handleSignOut}
         style={{
           backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -182,7 +182,7 @@ export default function ProfileSection({ onOpenSettings, isCollapsed = false }) 
         }}>
           Sign Out
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   )
 }
