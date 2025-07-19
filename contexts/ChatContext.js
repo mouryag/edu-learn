@@ -18,7 +18,7 @@ const chatReducer = (state, action) => {
   switch (action.type) {
     case 'SET_USER_ID':
       return { ...state, user_id: action.payload }
-    
+      
     case 'SET_CHATS':
       return { ...state, chats: action.payload }
     
@@ -128,7 +128,7 @@ export const ChatProvider = ({ children }) => {
 
   // Save chats whenever they change
   useEffect(() => {
-    if (state.chats.length > 0) {
+    if (state.chats.length >= 0) { // Changed from > 0 to >= 0 to handle empty arrays
       saveChats()
     }
   }, [state.chats])
@@ -162,11 +162,13 @@ export const ChatProvider = ({ children }) => {
     return { user_id: state.user_id, session_id }
   }
 
-  const sendMessage = async (message) => {
+  const sendMessage = async (messageText) => {
+    if (!messageText.trim()) return
+
     // Add user message
     const userMessage = {
       id: Date.now(),
-      text: message,
+      text: messageText.trim(),
       sender: 'user',
       timestamp: new Date().toISOString()
     }
@@ -177,18 +179,18 @@ export const ChatProvider = ({ children }) => {
     // Auto-update chat title if it's the first message
     const currentChat = state.chats.find(c => c.id === state.currentChatId)
     if (currentChat && currentChat.messages.length === 0) {
-      const title = message.length > 30 ? message.substring(0, 30) + '...' : message
+      const title = messageText.length > 30 ? messageText.substring(0, 30) + '...' : messageText
       dispatch({
         type: 'UPDATE_CHAT_TITLE',
         payload: { chatId: state.currentChatId, title }
       })
     }
 
-    // Simulate AI response (replace with your Flask API call)
+    // Simulate AI response
     setTimeout(() => {
       const aiMessage = {
         id: Date.now() + 1,
-        text: "I understand your question about " + message + ". Let me help you with that...",
+        text: `I understand your question about "${messageText}". Let me help you with that. This is a simulated response for now.`,
         sender: 'ai',
         timestamp: new Date().toISOString()
       }
@@ -210,7 +212,8 @@ export const ChatProvider = ({ children }) => {
     dispatch({ type: 'SET_USER_ID', payload: userId })
   }
 
-  const value = {
+  // Create the context value object
+  const contextValue = {
     ...state,
     dispatch,
     createNewChat,
@@ -220,7 +223,7 @@ export const ChatProvider = ({ children }) => {
   }
 
   return (
-    <ChatContext.Provider value={value}>
+    <ChatContext.Provider value={contextValue}>
       {children}
     </ChatContext.Provider>
   )

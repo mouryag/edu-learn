@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   KeyboardAvoidingView,
   Platform,
@@ -9,8 +9,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import ChatHeader from '../components/chat/ChatHeader'
 import ChatSidebar from '../components/chat/ChatSidebar'
 import ChatWindow from '../components/chat/ChatWindow'
-import { AuthProvider } from '../contexts/AuthContext'
-import { ChatProvider } from '../contexts/ChatContext'
+import { AuthProvider, useAuth } from '../contexts/AuthContext'
+import { ChatProvider, useChat } from '../contexts/ChatContext'
 
 export default function HomeScreen() {
   return (
@@ -31,13 +31,19 @@ export default function HomeScreen() {
 }
 
 const ChatInterface = () => {
-  // Removed navigation reference - we'll handle logout differently
+  const { user } = useAuth()
+  const { setUserId } = useChat()
+
+  // Set user ID in chat context when user is available
+  useEffect(() => {
+    if (user?.id) {
+      setUserId(user.id)
+    }
+  }, [user?.id, setUserId])
+
   return (
     <View style={{ flex: 1, flexDirection: 'row' }}>
-      {/* Left Sidebar */}
       <ChatSidebar />
-      
-      {/* Main Chat Area */}
       <View style={{ flex: 1, backgroundColor: '#0f0f23' }}>
         <ChatHeader />
         <ChatWindow />

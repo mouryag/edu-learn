@@ -1,15 +1,15 @@
 import React from 'react'
 import {
-    Alert,
-    Image,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { useAuth } from '../../contexts/AuthContext'
 
-export default function ProfileSection({ onOpenSettings }) {
+export default function ProfileSection({ onOpenSettings, isCollapsed = false }) {
   const { user, signOut } = useAuth()
 
   if (!user) return null
@@ -38,9 +38,51 @@ export default function ProfileSection({ onOpenSettings }) {
     )
   }
 
+  // Collapsed view for when sidebar is minimized
+  if (isCollapsed) {
+    return (
+      <View style={{
+        alignItems: 'center',
+        paddingVertical: 16
+      }}>
+        <TouchableOpacity
+          onPress={onOpenSettings}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: '#4f46e5',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginBottom: 8
+          }}
+        >
+          <Text style={{
+            color: 'white',
+            fontSize: 14,
+            fontWeight: 'bold'
+          }}>
+            {getInitials(user.name)}
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          onPress={handleSignOut}
+          style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+            padding: 8,
+            borderRadius: 8
+          }}
+        >
+          <Icon name="sign-out" size={16} color="#ef4444" />
+        </TouchableOpacity>
+      </View>
+    )
+  }
+
   return (
     <View>
-      {/* Profile Info */}
+      {/* Profile Info - Only the main profile area is clickable for settings */}
       <TouchableOpacity
         onPress={onOpenSettings}
         style={{
@@ -102,93 +144,45 @@ export default function ProfileSection({ onOpenSettings }) {
           }} numberOfLines={1}>
             {user.name}
           </Text>
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
+          <Text style={{
+            color: 'rgba(255,255,255,0.7)',
+            fontSize: 12,
             marginTop: 2
-          }}>
-            <Text style={{
-              color: 'rgba(255,255,255,0.7)',
-              fontSize: 12
-            }}>
-              {user.subscription}
-            </Text>
-            <View style={{
-              width: 4,
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: 'rgba(255,255,255,0.5)',
-              marginHorizontal: 6
-            }} />
-            <Text style={{
-              color: 'rgba(255,255,255,0.7)',
-              fontSize: 12
-            }}>
-              {user.totalChats} chats
-            </Text>
-          </View>
+          }} numberOfLines={1}>
+            {user.email}
+          </Text>
         </View>
 
         {/* Settings Icon */}
         <Icon name="cog" size={18} color="rgba(255,255,255,0.7)" />
       </TouchableOpacity>
 
-      {/* Quick Actions */}
-      <View style={{
-        flexDirection: 'row',
-        marginBottom: 16,
-        gap: 8
-      }}>
-        {/* Settings Button */}
-        <TouchableOpacity
-          onPress={onOpenSettings}
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(79, 70, 229, 0.2)',
-            paddingVertical: 8,
-            paddingHorizontal: 12,
-            borderRadius: 8,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <Icon name="cog" size={14} color="#4f46e5" />
-          <Text style={{
-            color: '#4f46e5',
-            fontSize: 12,
-            fontWeight: '600',
-            marginLeft: 6
-          }}>
-            Settings
-          </Text>
-        </TouchableOpacity>
-
-        {/* Logout Button */}
-        <TouchableOpacity
-          onPress={handleSignOut}
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(239, 68, 68, 0.2)',
-            paddingVertical: 8,
-            paddingHorizontal: 12,
-            borderRadius: 8,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <Icon name="sign-out" size={14} color="#ef4444" />
-          <Text style={{
-            color: '#ef4444',
-            fontSize: 12,
-            fontWeight: '600',
-            marginLeft: 6
-          }}>
-            Sign Out
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {/* Logout Button - Separate from settings */}
+      <TouchableOpacity
+        onPress={handleSignOut}
+        style={{
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          paddingVertical: 10,
+          paddingHorizontal: 16,
+          borderRadius: 8,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 16,
+          borderWidth: 1,
+          borderColor: 'rgba(239, 68, 68, 0.2)'
+        }}
+      >
+        <Icon name="sign-out" size={14} color="#ef4444" />
+        <Text style={{
+          color: '#ef4444',
+          fontSize: 14,
+          fontWeight: '600',
+          marginLeft: 8
+        }}>
+          Sign Out
+        </Text>
+      </TouchableOpacity>
     </View>
   )
 }

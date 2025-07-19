@@ -6,14 +6,14 @@ const AuthContext = createContext(null)
 const initialState = {
   user: null,
   isAuthenticated: false,
-  isLoading: true
+  isLoading: true // Add loading state
 }
 
 const authReducer = (state, action) => {
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload }
-    
+      
     case 'UPDATE_USER':
       return {
         ...state,
@@ -54,44 +54,62 @@ export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState)
 
   useEffect(() => {
-    checkAuthState()
+    loadUserData()
   }, [])
 
-  const checkAuthState = async () => {
+  const loadUserData = async () => {
     try {
+      dispatch({ type: 'SET_LOADING', payload: true })
       const userData = await AsyncStorage.getItem('userData')
-      const authToken = await AsyncStorage.getItem('authToken')
-      
-      if (userData && authToken) {
+      if (userData) {
         const user = JSON.parse(userData)
         dispatch({ type: 'SIGN_IN', payload: user })
       } else {
         dispatch({ type: 'SET_LOADING', payload: false })
       }
     } catch (error) {
-      console.error('Error checking auth state:', error)
+      console.error('Error loading user data:', error)
       dispatch({ type: 'SET_LOADING', payload: false })
     }
   }
 
-  const signIn = async (userData, token) => {
+  const saveUserData = async (userData) => {
     try {
-      // Save to AsyncStorage
       await AsyncStorage.setItem('userData', JSON.stringify(userData))
-      await AsyncStorage.setItem('authToken', token)
-      
-      // Update state
-      dispatch({ type: 'SIGN_IN', payload: userData })
     } catch (error) {
-      console.error('Error signing in:', error)
-      throw error
+      console.error('Error saving user data:', error)
     }
+  }
+
+  const signIn = async (email, password) => {
+    // This would normally call your authentication API
+    // For now, create a user object from the provided data
+    const user = {
+      id: `user_${Date.now()}`,
+      name: email.split('@')[0].replace(/[^a-zA-Z ]/g, '').replace(/\b\w/g, l => l.toUpperCase()) || 'User',
+      email: email,
+      avatar: null,
+      subscription: 'Free', // Start with free
+      joinDate: new Date().toISOString(),
+      totalChats: 0,
+      preferences: {
+        theme: 'dark',
+        language: 'English',
+        notifications: true,
+        autoSave: true,
+        dataSharing: false
+      }
+    }
+    
+    dispatch({ type: 'SIGN_IN', payload: user })
+    saveUserData(user)
+    return user
   }
 
   const signOut = async () => {
     try {
       // Clear all stored data
-      await AsyncStorage.multiRemove(['userData', 'authToken', 'chats'])
+      await AsyncStorage.multiRemove(['userData', 'chats'])
       
       // Update auth state
       dispatch({ type: 'SIGN_OUT' })
@@ -100,30 +118,22 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const updateProfile = async (updates) => {
-    try {
-      const updatedUser = { ...state.user, ...updates }
-      await AsyncStorage.setItem('userData', JSON.stringify(updatedUser))
-      dispatch({ type: 'UPDATE_USER', payload: updates })
-    } catch (error) {
-      console.error('Error updating profile:', error)
-    }
+  const updateProfile = (updates) => {
+    const updatedUser = { ...state.user, ...updates }
+    dispatch({ type: 'UPDATE_USER', payload: updates })
+    saveUserData(updatedUser)
   }
 
-  const updatePreferences = async (preferences) => {
-    try {
-      const updatedUser = {
-        ...state.user,
-        preferences: { ...state.user.preferences, ...preferences }
-      }
-      await AsyncStorage.setItem('userData', JSON.stringify(updatedUser))
-      dispatch({ type: 'UPDATE_PREFERENCES', payload: preferences })
-    } catch (error) {
-      console.error('Error updating preferences:', error)
+  const updatePreferences = (preferences) => {
+    dispatch({ type: 'UPDATE_PREFERENCES', payload: preferences })
+    const updatedUser = {
+      ...state.user,
+      preferences: { ...state.user.preferences, ...preferences }
     }
+    saveUserData(updatedUser)
   }
 
-  const value = {
+  const contextValue = {
     ...state,
     signIn,
     signOut,
@@ -133,7 +143,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   )
