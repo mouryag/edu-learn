@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from 'react'
+import { auth } from '../firebaseConfig'
 
 const AuthContext = createContext(null)
 
@@ -82,26 +84,87 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   const signIn = useCallback(async (email, password) => {
-    const user = {
-      id: `user_${Date.now()}`,
-      name: email.split('@')[0].replace(/[^a-zA-Z ]/g, '').replace(/\b\w/g, l => l.toUpperCase()) || 'User',
-      email: email,
-      avatar: null,
-      subscription: 'Free',
-      joinDate: new Date().toISOString(),
-      totalChats: 0,
-      preferences: {
-        theme: 'dark',
-        language: 'English',
-        notifications: true,
-        autoSave: true,
-        dataSharing: false
+    try {
+      // Try Firebase auth first
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      const firebaseUser = userCredential.user
+      
+      const user = {
+        id: firebaseUser.uid,
+        name: firebaseUser.displayName || email.split('@')[0].replace(/[^a-zA-Z ]/g, '').replace(/\b\w/g, l => l.toUpperCase()) || 'User',
+        email: firebaseUser.email,
+        avatar: firebaseUser.photoURL,
+        subscription: 'Free',
+        joinDate: new Date().toISOString(),
+        totalChats: 0,
+        preferences: {
+          theme: 'dark',
+          language: 'English',
+          notifications: true,
+          autoSave: true,
+          dataSharing: false
+        }
       }
+      
+      dispatch({ type: 'SIGN_IN', payload: user })
+      await saveUserData(user)
+      return user
+    } catch (error) {
+      console.error('Firebase sign in error:', error)
+      // Fallback for development - create local user
+      const user = {
+        id: `user_${Date.now()}`,
+        name: email.split('@')[0].replace(/[^a-zA-Z ]/g, '').replace(/\b\w/g, l => l.toUpperCase()) || 'User',
+        email: email,
+        avatar: null,
+        subscription: 'Free',
+        joinDate: new Date().toISOString(),
+        totalChats: 0,
+        preferences: {
+          theme: 'dark',
+          language: 'English',
+          notifications: true,
+          autoSave: true,
+          dataSharing: false
+        }
+      }
+      
+      dispatch({ type: 'SIGN_IN', payload: user })
+      await saveUserData(user)
+      return user
     }
-    
-    dispatch({ type: 'SIGN_IN', payload: user })
-    await saveUserData(user)
-    return user
+  }, [saveUserData])
+
+  const signUp = useCallback(async (email, password, fullName) => {
+    try {
+      // Try Firebase auth first
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      const firebaseUser = userCredential.user
+      
+      const user = {
+        id: firebaseUser.uid,
+        name: fullName || firebaseUser.displayName || email.split('@')[0].replace(/[^a-zA-Z ]/g, '').replace(/\b\w/g, l => l.toUpperCase()) || 'User',
+        email: firebaseUser.email,
+        avatar: firebaseUser.photoURL,
+        subscription: 'Free',
+        joinDate: new Date().toISOString(),
+        totalChats: 0,
+        preferences: {
+          theme: 'dark',
+          language: 'English',
+          notifications: true,
+          autoSave: true,
+          dataSharing: false
+        }
+      }
+      
+      dispatch({ type: 'SIGN_IN', payload: user })
+      await saveUserData(user)
+      return user
+    } catch (error) {
+      console.error('Firebase sign up error:', error)
+      throw error
+    }
   }, [saveUserData])
 
   const signOut = useCallback(async () => {
@@ -128,17 +191,17 @@ export const AuthProvider = ({ children }) => {
     saveUserData(updatedUser)
   }, [state.user, saveUserData])
 
-  // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({
     user: state.user,
     isAuthenticated: state.isAuthenticated,
     isLoading: state.isLoading,
     signIn,
+    signUp,
     signOut,
     updateProfile,
     updatePreferences,
     dispatch
-  }), [state.user, state.isAuthenticated, state.isLoading, signIn, signOut, updateProfile, updatePreferences])
+  }), [state.user, state.isAuthenticated, state.isLoading, signIn, signUp, signOut, updateProfile, updatePreferences])
 
   return (
     <AuthContext.Provider value={contextValue}>

@@ -1,15 +1,9 @@
-import AppNavigation from './navigation/appNavigation';
+// Import Firebase config first, before any other Firebase-related imports
+import './firebaseConfig'
 
-// import { NavigationContainer } from '@react-navigation/native';
-// import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-// import HomeScreen from './screens/HomeScreen';
-// import GameStore from './screens/gameStore';
-
-// const Tab = createBottomTabNavigator();
-
+import React from 'react'
+import AppNavigation from './navigation/appNavigation'
 
 export default function App() {
-  return (
-    <AppNavigation />
-  );
+  return <AppNavigation />
 }

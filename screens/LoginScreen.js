@@ -1,23 +1,21 @@
-import { useNavigation } from '@react-navigation/native'
-import { signInWithEmailAndPassword } from 'firebase/auth'
 import React, { useState } from 'react'
 import {
-  Alert,
-  Dimensions,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StatusBar,
+  View,
   Text,
-  TextInput,
   TouchableOpacity,
-  View
+  TextInput,
+  Alert,
+  ScrollView,
+  Dimensions,
+  Platform,
+  KeyboardAvoidingView,
+  StatusBar
 } from 'react-native'
-import { ArrowLeftIcon } from 'react-native-heroicons/solid'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Icon from 'react-native-vector-icons/FontAwesome'
-import { auth } from '../config/firebase'
+import { ArrowLeftIcon } from 'react-native-heroicons/solid'
+import { useNavigation } from '@react-navigation/native'
 import { useAuth } from '../contexts/AuthContext'
+import Icon from 'react-native-vector-icons/FontAwesome'
 
 const { height } = Dimensions.get('window')
 
@@ -44,26 +42,11 @@ export default function LoginScreen() {
 
     setIsLoading(true)
     try {
-      // Try Firebase auth first
-      await signInWithEmailAndPassword(auth, email, password)
-      
-      // If successful, sign in to our app context
       await signIn(email, password)
-      
       // Navigation will be handled automatically by AppNavigation
     } catch (err) {
       console.log('Login error: ', err.message)
-      
-      // For development - allow any email/password combination
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        try {
-          await signIn(email, password)
-        } catch (contextError) {
-          Alert.alert("Login Failed", "Please check your credentials and try again")
-        }
-      } else {
-        Alert.alert("Login Failed", "Please check your credentials and try again")
-      }
+      Alert.alert("Login Failed", "Please check your credentials and try again")
     } finally {
       setIsLoading(false)
     }
@@ -85,9 +68,15 @@ export default function LoginScreen() {
           contentContainerStyle={{ flexGrow: 1 }} 
           showsVerticalScrollIndicator={false}
         >
-          <SafeAreaView className="flex-1">
+          <SafeAreaView style={{ flex: 1 }}>
             {/* Header */}
-            <View className="flex-row justify-between items-center px-4 pt-4">
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingHorizontal: 16,
+              paddingTop: 16
+            }}>
               <TouchableOpacity 
                 onPress={() => navigation.goBack()} 
                 style={{ 
@@ -255,23 +244,13 @@ export default function LoginScreen() {
                 </View>
               </View>
 
-              {/* Forgot Password */}
-              <TouchableOpacity style={{ alignItems: 'flex-end' }}>
-                <Text style={{
-                  color: '#2563eb',
-                  fontSize: 16,
-                  fontWeight: '500'
-                }}>
-                  Forgot Password?
-                </Text>
-              </TouchableOpacity>
-
               {/* Login Button */}
               <TouchableOpacity 
                 style={{
                   paddingVertical: 16,
                   borderRadius: 16,
-                  backgroundColor: isLoading ? '#9ca3af' : '#3b82f6'
+                  backgroundColor: isLoading ? '#9ca3af' : '#3b82f6',
+                  marginTop: 8
                 }}
                 onPress={handleSubmit}
                 disabled={isLoading}

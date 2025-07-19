@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import {
+  ActivityIndicator,
+  Alert,
   ScrollView,
   Text,
   TextInput,
@@ -17,8 +19,12 @@ export default function ChatSidebar() {
     chats,
     currentChatId,
     sidebarVisible,
+    isLoading,
     dispatch,
-    createNewChat
+    createNewChat,
+    deleteChat,
+    updateChatTitle,
+    toggleStarChat
   } = useChat()
   
   const { user } = useAuth()
@@ -31,6 +37,63 @@ export default function ChatSidebar() {
     chat.title.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const handleNewChat = async () => {
+    const result = await createNewChat()
+    if (!result) {
+      Alert.alert('Error', 'Failed to create new chat. Please try again.')
+    }
+  }
+
+  const handleSelectChat = (chatId) => {
+    dispatch({ type: 'SET_CURRENT_CHAT', payload: chatId })
+  }
+
+  const handleStarChat = async (chatId) => {
+    await toggleStarChat(chatId)
+  }
+
+  const handleDeleteChat = (chatId) => {
+    Alert.alert(
+      'Delete Chat',
+      'Are you sure you want to delete this chat? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => deleteChat(chatId)
+        }
+      ]
+    )
+  }
+
+  const handleRenameChat = (chatId, currentTitle) => {
+    setEditingId(chatId)
+    setEditTitle(currentTitle)
+  }
+
+  const saveRename = async () => {
+    if (editTitle.trim() && editingId) {
+      await updateChatTitle(editingId, editTitle.trim())
+    }
+    setEditingId(null)
+    setEditTitle('')
+  }
+
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffInHours = (now - date) / (1000 * 60 * 60)
+    
+    if (diffInHours < 24) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    } else if (diffInHours < 168) { // 7 days
+      return date.toLocaleDateString([], { weekday: 'short' })
+    } else {
+      return date.toLocaleDateString([], { month: 'short', day: 'numeric' })
+    }
+  }
+
   // Collapsed sidebar view
   if (!sidebarVisible) {
     return (
@@ -41,7 +104,6 @@ export default function ChatSidebar() {
         borderRightColor: 'rgba(255,255,255,0.1)',
         paddingVertical: 16
       }}>
-        {/* Expand Button */}
         <TouchableOpacity
           onPress={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
           style={{
@@ -53,12 +115,8 @@ export default function ChatSidebar() {
           <Icon name="bars" size={20} color="rgba(255,255,255,0.7)" />
         </TouchableOpacity>
 
-        {/* New Chat Button */}
         <TouchableOpacity
-          onPress={() => {
-            createNewChat()
-            dispatch({ type: 'TOGGLE_SIDEBAR' }) // Expand to show new chat
-          }}
+          onPress={handleNewChat}
           style={{
             alignItems: 'center',
             paddingVertical: 12,
@@ -77,13 +135,11 @@ export default function ChatSidebar() {
           </View>
         </TouchableOpacity>
 
-        {/* Profile Section - Collapsed */}
         <ProfileSection 
           onOpenSettings={() => setSettingsVisible(true)} 
           isCollapsed={true}
         />
 
-        {/* Settings Modal */}
         <SettingsModal
           visible={settingsVisible}
           onClose={() => setSettingsVisible(false)}
@@ -126,12 +182,10 @@ export default function ChatSidebar() {
           </TouchableOpacity>
         </View>
 
-        {/* Profile Section - Full */}
         <ProfileSection onOpenSettings={() => setSettingsVisible(true)} />
 
-        {/* New Chat Button */}
         <TouchableOpacity
-          onPress={createNewChat}
+          onPress={handleNewChat}
           style={{
             backgroundColor: '#4f46e5',
             paddingVertical: 12,
@@ -153,7 +207,6 @@ export default function ChatSidebar() {
           </Text>
         </TouchableOpacity>
 
-        {/* Search Bar */}
         <View style={{
           backgroundColor: 'rgba(255,255,255,0.1)',
           borderRadius: 8,
@@ -180,49 +233,106 @@ export default function ChatSidebar() {
 
       {/* Chat List */}
       <ScrollView style={{ flex: 1, padding: 8 }}>
-        {/* Rest of your chat list implementation */}
-        {filteredChats.map((chat) => (
-          <TouchableOpacity
-            key={chat.id}
-            onPress={() => dispatch({ type: 'SET_CURRENT_CHAT', payload: chat.id })}
-            style={{
-              backgroundColor: currentChatId === chat.id 
-                ? 'rgba(79, 70, 229, 0.2)' 
-                : 'transparent',
-              borderRadius: 12,
-              padding: 12,
-              marginBottom: 4
-            }}
-          >
-            <Text style={{
-              color: 'white',
-              fontSize: 14,
-              fontWeight: '500'
-            }} numberOfLines={1}>
-              {chat.title}
-            </Text>
-          </TouchableOpacity>
-        ))}
-
-        {filteredChats.length === 0 && (
+        {isLoading ? (
           <View style={{
             alignItems: 'center',
             paddingVertical: 32
           }}>
-            <Icon name="comments-o" size={32} color="rgba(255,255,255,0.3)" />
+            <ActivityIndicator size="large" color="#4f46e5" />
             <Text style={{
-              color: 'rgba(255,255,255,0.5)',
-              fontSize: 14,
-              marginTop: 8,
-              textAlign: 'center'
+              color: 'rgba(255,255,255,0.7)',
+              marginTop: 8
             }}>
-              {searchQuery ? 'No chats found' : 'Start a new conversation'}
+              Loading your chats...
             </Text>
           </View>
+        ) : (
+          <>
+            {/* Starred Chats Section */}
+            {filteredChats.filter(chat => chat.starred).length > 0 && (
+              <>
+                <Text style={{
+                  color: 'rgba(255,255,255,0.6)',
+                  fontSize: 12,
+                  fontWeight: '600',
+                  marginLeft: 12,
+                  marginBottom: 8,
+                  marginTop: 8,
+                  textTransform: 'uppercase',
+                  letterSpacing: 1
+                }}>
+                  ⭐ Starred
+                </Text>
+                {filteredChats.filter(chat => chat.starred).map((chat) => (
+                  <ChatItem
+                    key={`starred-${chat.id}`}
+                    chat={chat}
+                    currentChatId={currentChatId}
+                    editingId={editingId}
+                    editTitle={editTitle}
+                    onSelect={handleSelectChat}
+                    onStar={handleStarChat}
+                    onRename={handleRenameChat}
+                    onDelete={handleDeleteChat}
+                    setEditTitle={setEditTitle}
+                    saveRename={saveRename}
+                    formatTimestamp={formatTimestamp}
+                  />
+                ))}
+              </>
+            )}
+
+            {/* Recent Chats Section */}
+            <Text style={{
+              color: 'rgba(255,255,255,0.6)',
+              fontSize: 12,
+              fontWeight: '600',
+              marginLeft: 12,
+              marginBottom: 8,
+              marginTop: filteredChats.filter(chat => chat.starred).length > 0 ? 16 : 8,
+              textTransform: 'uppercase',
+              letterSpacing: 1
+            }}>
+              💬 Recent
+            </Text>
+
+            {filteredChats.filter(chat => !chat.starred).map((chat) => (
+              <ChatItem
+                key={chat.id}
+                chat={chat}
+                currentChatId={currentChatId}
+                editingId={editingId}
+                editTitle={editTitle}
+                onSelect={handleSelectChat}
+                onStar={handleStarChat}
+                onRename={handleRenameChat}
+                onDelete={handleDeleteChat}
+                setEditTitle={setEditTitle}
+                saveRename={saveRename}
+                formatTimestamp={formatTimestamp}
+              />
+            ))}
+
+            {filteredChats.length === 0 && !isLoading && (
+              <View style={{
+                alignItems: 'center',
+                paddingVertical: 32
+              }}>
+                <Icon name="comments-o" size={32} color="rgba(255,255,255,0.3)" />
+                <Text style={{
+                  color: 'rgba(255,255,255,0.5)',
+                  fontSize: 14,
+                  marginTop: 8,
+                  textAlign: 'center'
+                }}>
+                  {searchQuery ? 'No chats found' : 'Start a new conversation!'}
+                </Text>
+              </View>
+            )}
+          </>
         )}
       </ScrollView>
 
-      {/* Settings Modal */}
       <SettingsModal
         visible={settingsVisible}
         onClose={() => setSettingsVisible(false)}
@@ -230,3 +340,109 @@ export default function ChatSidebar() {
     </View>
   )
 }
+
+// ChatItem component
+const ChatItem = ({
+  chat,
+  currentChatId,
+  editingId,
+  editTitle,
+  onSelect,
+  onStar,
+  onRename,
+  onDelete,
+  setEditTitle,
+  saveRename,
+  formatTimestamp
+}) => (
+  <TouchableOpacity
+    onPress={() => onSelect(chat.id)}
+    style={{
+      backgroundColor: currentChatId === chat.id 
+        ? 'rgba(79, 70, 229, 0.2)' 
+        : 'transparent',
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 4,
+      borderWidth: currentChatId === chat.id ? 1 : 0,
+      borderColor: currentChatId === chat.id 
+        ? 'rgba(79, 70, 229, 0.5)' 
+        : 'transparent'
+    }}
+  >
+    <View style={{
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }}>
+      <View style={{ flex: 1, marginRight: 8 }}>
+        {editingId === chat.id ? (
+          <TextInput
+            style={{
+              color: 'white',
+              fontSize: 14,
+              fontWeight: '500',
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              borderRadius: 6
+            }}
+            value={editTitle}
+            onChangeText={setEditTitle}
+            onBlur={saveRename}
+            onSubmitEditing={saveRename}
+            autoFocus
+          />
+        ) : (
+          <Text
+            style={{
+              color: 'white',
+              fontSize: 14,
+              fontWeight: '500'
+            }}
+            numberOfLines={1}
+          >
+            {chat.title}
+          </Text>
+        )}
+        <Text style={{
+          color: 'rgba(255,255,255,0.5)',
+          fontSize: 12,
+          marginTop: 2
+        }}>
+          {formatTimestamp(chat.timestamp)}
+        </Text>
+      </View>
+
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center'
+      }}>
+        <TouchableOpacity
+          onPress={() => onStar(chat.id)}
+          style={{ padding: 4, marginRight: 4 }}
+        >
+          <Icon
+            name={chat.starred ? "star" : "star-o"}
+            size={14}
+            color={chat.starred ? "#fbbf24" : "rgba(255,255,255,0.5)"}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => onRename(chat.id, chat.title)}
+          style={{ padding: 4, marginRight: 4 }}
+        >
+          <Icon name="edit" size={14} color="rgba(255,255,255,0.5)" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => onDelete(chat.id)}
+          style={{ padding: 4 }}
+        >
+          <Icon name="trash" size={14} color="rgba(255,255,255,0.5)" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  </TouchableOpacity>
+)
