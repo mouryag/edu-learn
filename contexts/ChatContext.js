@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import React, { createContext, useContext, useEffect, useReducer } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from 'react'
 
-// Create context with proper typing
 const ChatContext = createContext(null)
 
 const initialState = {
@@ -11,7 +10,7 @@ const initialState = {
   isTyping: false,
   sidebarVisible: true,
   darkMode: false,
-  user_id: null, // Will be set from auth
+  user_id: null,
 }
 
 const chatReducer = (state, action) => {
@@ -121,19 +120,7 @@ const chatReducer = (state, action) => {
 export const ChatProvider = ({ children }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState)
 
-  // Load chats when component mounts
-  useEffect(() => {
-    loadChats()
-  }, [])
-
-  // Save chats whenever they change
-  useEffect(() => {
-    if (state.chats.length >= 0) { // Changed from > 0 to >= 0 to handle empty arrays
-      saveChats()
-    }
-  }, [state.chats])
-
-  const loadChats = async () => {
+  const loadChats = useCallback(async () => {
     try {
       const savedChats = await AsyncStorage.getItem('chats')
       if (savedChats) {
@@ -143,26 +130,38 @@ export const ChatProvider = ({ children }) => {
     } catch (error) {
       console.error('Error loading chats:', error)
     }
-  }
+  }, [])
 
-  const saveChats = async () => {
+  const saveChats = useCallback(async (chats) => {
     try {
-      await AsyncStorage.setItem('chats', JSON.stringify(state.chats))
+      await AsyncStorage.setItem('chats', JSON.stringify(chats))
     } catch (error) {
       console.error('Error saving chats:', error)
     }
-  }
+  }, [])
 
-  const createNewChat = () => {
+  // Load chats only once when component mounts
+  useEffect(() => {
+    loadChats()
+  }, [loadChats])
+
+  // Save chats when they change
+  useEffect(() => {
+    if (state.chats.length >= 0) {
+      saveChats(state.chats)
+    }
+  }, [state.chats, saveChats])
+
+  const createNewChat = useCallback(() => {
     const session_id = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     dispatch({
       type: 'CREATE_CHAT',
       payload: { session_id, title: 'New Chat' }
     })
     return { user_id: state.user_id, session_id }
-  }
+  }, [state.user_id])
 
-  const sendMessage = async (messageText) => {
+  const sendMessage = useCallback(async (messageText) => {
     if (!messageText.trim()) return
 
     // Add user message
@@ -197,30 +196,48 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: 'ADD_MESSAGE', payload: aiMessage })
       dispatch({ type: 'SET_TYPING', payload: false })
     }, 2000)
-  }
+  }, [state.chats, state.currentChatId])
 
-  const clearAllChats = async () => {
+  const clearAllChats = useCallback(async () => {
     try {
       await AsyncStorage.removeItem('chats')
       dispatch({ type: 'CLEAR_ALL_CHATS' })
     } catch (error) {
       console.error('Error clearing chats:', error)
     }
-  }
+  }, [])
 
-  const setUserId = (userId) => {
+  const setUserId = useCallback((userId) => {
     dispatch({ type: 'SET_USER_ID', payload: userId })
-  }
+  }, [])
 
-  // Create the context value object
-  const contextValue = {
-    ...state,
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    chats: state.chats,
+    currentChatId: state.currentChatId,
+    currentMessages: state.currentMessages,
+    isTyping: state.isTyping,
+    sidebarVisible: state.sidebarVisible,
+    darkMode: state.darkMode,
+    user_id: state.user_id,
     dispatch,
     createNewChat,
     sendMessage,
     clearAllChats,
     setUserId
-  }
+  }), [
+    state.chats,
+    state.currentChatId,
+    state.currentMessages,
+    state.isTyping,
+    state.sidebarVisible,
+    state.darkMode,
+    state.user_id,
+    createNewChat,
+    sendMessage,
+    clearAllChats,
+    setUserId
+  ])
 
   return (
     <ChatContext.Provider value={contextValue}>

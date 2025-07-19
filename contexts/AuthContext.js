@@ -1,12 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import React, { createContext, useContext, useEffect, useReducer } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from 'react'
 
 const AuthContext = createContext(null)
 
 const initialState = {
   user: null,
   isAuthenticated: false,
-  isLoading: true // Add loading state
+  isLoading: true
 }
 
 const authReducer = (state, action) => {
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
     loadUserData()
   }, [])
 
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
       const userData = await AsyncStorage.getItem('userData')
@@ -71,25 +71,23 @@ export const AuthProvider = ({ children }) => {
       console.error('Error loading user data:', error)
       dispatch({ type: 'SET_LOADING', payload: false })
     }
-  }
+  }, [])
 
-  const saveUserData = async (userData) => {
+  const saveUserData = useCallback(async (userData) => {
     try {
       await AsyncStorage.setItem('userData', JSON.stringify(userData))
     } catch (error) {
       console.error('Error saving user data:', error)
     }
-  }
+  }, [])
 
-  const signIn = async (email, password) => {
-    // This would normally call your authentication API
-    // For now, create a user object from the provided data
+  const signIn = useCallback(async (email, password) => {
     const user = {
       id: `user_${Date.now()}`,
       name: email.split('@')[0].replace(/[^a-zA-Z ]/g, '').replace(/\b\w/g, l => l.toUpperCase()) || 'User',
       email: email,
       avatar: null,
-      subscription: 'Free', // Start with free
+      subscription: 'Free',
       joinDate: new Date().toISOString(),
       totalChats: 0,
       preferences: {
@@ -102,45 +100,45 @@ export const AuthProvider = ({ children }) => {
     }
     
     dispatch({ type: 'SIGN_IN', payload: user })
-    saveUserData(user)
+    await saveUserData(user)
     return user
-  }
+  }, [saveUserData])
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     try {
-      // Clear all stored data
       await AsyncStorage.multiRemove(['userData', 'chats'])
-      
-      // Update auth state
       dispatch({ type: 'SIGN_OUT' })
     } catch (error) {
       console.error('Error signing out:', error)
     }
-  }
+  }, [])
 
-  const updateProfile = (updates) => {
+  const updateProfile = useCallback((updates) => {
     const updatedUser = { ...state.user, ...updates }
     dispatch({ type: 'UPDATE_USER', payload: updates })
     saveUserData(updatedUser)
-  }
+  }, [state.user, saveUserData])
 
-  const updatePreferences = (preferences) => {
+  const updatePreferences = useCallback((preferences) => {
     dispatch({ type: 'UPDATE_PREFERENCES', payload: preferences })
     const updatedUser = {
       ...state.user,
       preferences: { ...state.user.preferences, ...preferences }
     }
     saveUserData(updatedUser)
-  }
+  }, [state.user, saveUserData])
 
-  const contextValue = {
-    ...state,
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    user: state.user,
+    isAuthenticated: state.isAuthenticated,
+    isLoading: state.isLoading,
     signIn,
     signOut,
     updateProfile,
     updatePreferences,
     dispatch
-  }
+  }), [state.user, state.isAuthenticated, state.isLoading, signIn, signOut, updateProfile, updatePreferences])
 
   return (
     <AuthContext.Provider value={contextValue}>

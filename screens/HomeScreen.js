@@ -35,11 +35,12 @@ const ChatInterface = () => {
   const { setUserId } = useChat()
 
   // Set user ID in chat context when user is available
+  // Use user.id as dependency to prevent infinite loops
   useEffect(() => {
     if (user?.id) {
       setUserId(user.id)
     }
-  }, [user?.id, setUserId])
+  }, [user?.id, setUserId]) // Only run when user.id actually changes
 
   return (
     <View style={{ flex: 1, flexDirection: 'row' }}>

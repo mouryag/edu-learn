@@ -1,11 +1,11 @@
 import React, { useRef, useState } from 'react'
 import {
-    Animated,
-    KeyboardAvoidingView,
-    Platform,
-    TextInput,
-    TouchableOpacity,
-    View
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { useChat } from '../../contexts/ChatContext'
@@ -43,11 +43,8 @@ export default function ChatInput() {
         })
       ]).start()
 
-      // Send message with user_id and session_id for backend
+      // Send message
       await sendMessage(messageText)
-      
-      // Here you would call your Flask backend:
-      // await callFlaskAPI(chatInfo.user_id, chatInfo.session_id, messageText)
     }
   }
 
