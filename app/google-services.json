@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "835969451813",
+    "project_id": "fire-learn-edu-app",
+    "storage_bucket": "fire-learn-edu-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:835969451813:android:2d1c93e0cd5e9ce479bccc",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "835969451813-v1bib4f3rb9opc174324271ih8auhh5h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClO6AYVjsHEFLoQr_F0GQ99Z1axu-PSao"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "835969451813-v1bib4f3rb9opc174324271ih8auhh5h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
