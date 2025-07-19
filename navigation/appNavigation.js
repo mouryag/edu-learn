@@ -1,38 +1,40 @@
-import { View, Text } from 'react-native'
+import { NavigationContainer } from '@react-navigation/native'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import React from 'react'
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from '../screens/HomeScreen';
-import WelcomeScreen from '../screens/WelcomeScreen';
-import LoginScreen from '../screens/LoginScreen';
-import SignUpScreen from '../screens/SignUpScreen';
-import useAuth from '../hooks/useAuth';
+import { AuthProvider, useAuth } from '../contexts/AuthContext'
+import HomeScreen from '../screens/HomeScreen'
+import LoginScreen from '../screens/LoginScreen'
+import SignUpScreen from '../screens/SignUpScreen'
+import WelcomeScreen from '../screens/WelcomeScreen'
 
-const Stack = createNativeStackNavigator();
-
+const Stack = createNativeStackNavigator()
 
 export default function AppNavigation() {
-  const { user } = useAuth();
-  if(user)
-  {
-    return (
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName='Home'>
-          <Stack.Screen name="Home" options={{headerShown: false}} component={HomeScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    )
-  }else
-  {
-    return (
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName='Welcome'>
-          <Stack.Screen name="Welcome" options={{headerShown: false}} component={WelcomeScreen} />
-          <Stack.Screen name="Login" options={{headerShown: false}} component={LoginScreen} />
-          <Stack.Screen name="SignUp" options={{headerShown: false}} component={SignUpScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    )
-  }
-  
+  return (
+    <NavigationContainer>
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
+    </NavigationContainer>
+  )
+}
+
+function AppNavigator() {
+  const { isAuthenticated } = useAuth()
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {isAuthenticated ? (
+        // Authenticated stack
+        <Stack.Screen name="Home" component={HomeScreen} />
+      ) : (
+        // Non-authenticated stack
+        <>
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="SignUp" component={SignUpScreen} />
+        </>
+      )}
+    </Stack.Navigator>
+  )
 }
