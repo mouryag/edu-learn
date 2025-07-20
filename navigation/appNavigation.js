@@ -1,55 +1,97 @@
-import { NavigationContainer } from '@react-navigation/native'
-import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import React from 'react'
-import { ActivityIndicator, View } from 'react-native'
-import { AuthProvider, useAuth } from '../contexts/AuthContext'
-import HomeScreen from '../screens/HomeScreen'
-import LoginScreen from '../screens/LoginScreen'
-import SignUpScreen from '../screens/SignUpScreen'
-import WelcomeScreen from '../screens/WelcomeScreen'
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React from 'react';
+import { ActivityIndicator, View } from 'react-native';
 
-const Stack = createNativeStackNavigator()
+// Import screens
+import HomeScreen from '../screens/HomeScreen';
+import LoginScreen from '../screens/LoginScreen';
+import SignUpScreen from '../screens/SignUpScreen';
+import WelcomeScreen from '../screens/WelcomeScreen';
 
-export default function AppNavigation() {
-  return (
-    <NavigationContainer>
-      <AuthProvider>
-        <AppNavigator />
-      </AuthProvider>
-    </NavigationContainer>
-  )
-}
+// Import contexts
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { ChatProvider } from '../contexts/ChatContext';
 
+const Stack = createNativeStackNavigator();
+
+// Main navigation component
 function AppNavigator() {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { user, loading } = useAuth();
 
   // Show loading screen while checking auth state
-  if (isLoading) {
+  if (loading) {
     return (
       <View style={{ 
         flex: 1, 
         justifyContent: 'center', 
-        alignItems: 'center', 
-        backgroundColor: '#1e1b4b' 
+        alignItems: 'center',
+        backgroundColor: 'white'
       }}>
-        <ActivityIndicator size="large" color="#4f46e5" />
+        <ActivityIndicator size="large" color="#e97a47" />
       </View>
-    )
+    );
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {isAuthenticated ? (
-        // Authenticated stack
-        <Stack.Screen name="Home" component={HomeScreen} />
-      ) : (
-        // Non-authenticated stack
-        <>
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="SignUp" component={SignUpScreen} />
-        </>
-      )}
-    </Stack.Navigator>
-  )
+    <NavigationContainer>
+      <Stack.Navigator 
+        screenOptions={{ 
+          headerShown: false,
+          gestureEnabled: true,
+          animation: 'slide_from_right'
+        }}
+      >
+        {user ? (
+          // User is authenticated - show main app
+          <Stack.Screen name="Home" component={HomeScreenWithChat} />
+        ) : (
+          // User is not authenticated - show auth screens
+          <>
+            <Stack.Screen 
+              name="Welcome" 
+              component={WelcomeScreen}
+              options={{ 
+                animationTypeForReplace: 'pop',
+              }}
+            />
+            <Stack.Screen 
+              name="Login" 
+              component={LoginScreen}
+              options={{
+                title: 'Sign In',
+                animation: 'slide_from_right'
+              }}
+            />
+            <Stack.Screen 
+              name="SignUp" 
+              component={SignUpScreen}
+              options={{
+                title: 'Sign Up',
+                animation: 'slide_from_right'
+              }}
+            />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+// Wrap HomeScreen with ChatProvider for authenticated users
+function HomeScreenWithChat() {
+  return (
+    <ChatProvider>
+      <HomeScreen />
+    </ChatProvider>
+  );
+}
+
+// Root App component with AuthProvider
+export default function AppNavigation() {
+  return (
+    <AuthProvider>
+      <AppNavigator />
+    </AuthProvider>
+  );
 }

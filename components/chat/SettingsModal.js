@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/native'
 import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import {
@@ -24,6 +25,112 @@ export default function SettingsModal({ visible, onClose }) {
   const [editName, setEditName] = useState(user?.name || '')
   const router = useRouter();
 
+  // const { user } = useAuth();
+  const navigation = useNavigation();
+
+  // // Handle Android back button
+  // useEffect(() => {
+  //   const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+  //     if (visible) {
+  //       handleCloseModal();
+  //       return true;
+  //     }
+  //     return false;
+  //   });
+
+  //   return () => backHandler.remove();
+  // }, [visible]);
+
+  if (!user) return null;
+
+  // Better close handler
+  const handleCloseModal = () => {
+    console.log('Closing settings modal...');
+    if (onClose && typeof onClose === 'function') {
+      onClose();
+    }
+  };
+
+  // Improved Sign Out with multiple fallback methods
+  const handleSignOut = () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              console.log('Starting sign out process...');
+              
+              // Close modal first
+              handleCloseModal();
+              
+              // Show loading state
+              setTimeout(async () => {
+                try {
+                  // Method 1: Direct Firebase signOut
+                  await signOut(auth);
+                  console.log('Firebase sign out successful');
+                  
+                  // Navigation fallback methods
+                  setTimeout(() => {
+                    try {
+                      // Try multiple navigation methods
+                      navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Welcome' }],
+                      });
+                    } catch (error1) {
+                      console.log('Reset to Welcome failed, trying Login...');
+                      try {
+                        navigation.reset({
+                          index: 0,
+                          routes: [{ name: 'Login' }],
+                        });
+                      } catch (error2) {
+                        console.log('Reset to Login failed, trying navigate...');
+                        try {
+                          navigation.navigate('Welcome');
+                        } catch (error3) {
+                          console.log('Navigate to Welcome failed, trying Login navigate...');
+                          try {
+                            navigation.navigate('Login');
+                          } catch (error4) {
+                            console.error('All navigation methods failed');
+                            // Last resort - show user message
+                            Alert.alert(
+                              'Sign Out Successful',
+                              'Please restart the app to continue.',
+                              [{ text: 'OK' }]
+                            );
+                          }
+                        }
+                      }
+                    }
+                  }, 1000);
+                  
+                } catch (signOutError) {
+                  console.error('Firebase sign out error:', signOutError);
+                  Alert.alert('Error', 'Failed to sign out. Please try again.');
+                }
+              }, 300);
+              
+            } catch (error) {
+              console.error('Error in sign out process:', error);
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (!user) return null
 
   // const handleSignOut = () => {
@@ -44,35 +151,35 @@ export default function SettingsModal({ visible, onClose }) {
   //   )
   // }
 
-  const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await signOut(auth);
-              onClose(); // Close the modal
+  // const handleSignOut = () => {
+  //   Alert.alert(
+  //     'Sign Out',
+  //     'Are you sure you want to sign out?',
+  //     [
+  //       {
+  //         text: 'Cancel',
+  //         style: 'cancel',
+  //       },
+  //       {
+  //         text: 'Sign Out',
+  //         style: 'destructive',
+  //         onPress: async () => {
+  //           try {
+  //             await signOut(auth);
+  //             onClose(); // Close the modal
               
-              // Navigate to login screen immediately
-              router.replace('../screens/LoginScreen'); // or wherever your login screen is
+  //             // Navigate to login screen immediately
+  //             router.replace('../screens/LoginScreen'); // or wherever your login screen is
               
-            } catch (error) {
-              console.error('Error signing out:', error);
-              Alert.alert('Error', 'Failed to sign out. Please try again.');
-            }
-          },
-        },
-      ]
-    );
-  };
+  //           } catch (error) {
+  //             console.error('Error signing out:', error);
+  //             Alert.alert('Error', 'Failed to sign out. Please try again.');
+  //           }
+  //         },
+  //       },
+  //     ]
+  //   );
+  // };
 
   const handleClearAllChats = () => {
     Alert.alert(

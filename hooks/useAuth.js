@@ -1,27 +1,20 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React, { useEffect,useState } from 'react'
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { useEffect, useState } from 'react';
+import { auth } from '../firebaseConfig';
 
-export default function useAuth(){
-    const [user,setUser] = useState(null);
+export function useAuth() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect (()=>{
-        const unsub = onAuthStateChanged(auth, user=>{ 
-            console.log('got user: ',user);
-            if (user)
-            {
-                setUser(user);
-            }else
-            {
-                setUser(null);
-            }
-        });
-        return unsub;
-    },[])
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      console.log('Auth state changed:', firebaseUser ? 'User logged in' : 'User logged out');
+      setUser(firebaseUser);
+      setLoading(false);
+    });
 
-  return { user }
+    return () => unsubscribe();
+  }, []);
+
+  return { user, loading };
 }
-
-
-const styles = StyleSheet.create({})
