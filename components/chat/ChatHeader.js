@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import {
-    Alert,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { useChat } from '../../contexts/ChatContext'
@@ -112,9 +112,9 @@ export default function ChatHeader() {
         {!sidebarVisible && (
           <TouchableOpacity
             onPress={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
-            style={{ marginRight: 16 }}
+            style={{ marginRight: 36 }}
           >
-            <Icon name="bars" size={20} color="rgba(255,255,255,0.7)" />
+            {/* <Icon name="bars" size={20} color="rgba(255,255,255,0.7)" /> */}
           </TouchableOpacity>
         )}
 
@@ -170,7 +170,7 @@ export default function ChatHeader() {
           onPress={handleClearChat}
           style={{ padding: 8 }}
         >
-          <Icon name="refresh" size={18} color="rgba(255,255,255,0.7)" />
+          {/* <Icon name="refresh" size={18} color="rgba(255,255,255,0.7)" /> */}
         </TouchableOpacity>
       </View>
     </View>

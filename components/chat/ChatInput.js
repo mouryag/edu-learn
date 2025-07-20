@@ -110,7 +110,7 @@ export default function ChatInput() {
         </View>
 
         {/* Quick Actions */}
-        <View style={styles.quickActions}>
+        {/* <View style={styles.quickActions}>
           {['Help with homework', 'Explain concept', 'Practice quiz'].map((item, idx) => (
             <TouchableOpacity
               key={idx}
@@ -121,7 +121,7 @@ export default function ChatInput() {
               <Text style={styles.quickActionText}>{item}</Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </View> */}
       </View>
     </KeyboardAvoidingView>
   );

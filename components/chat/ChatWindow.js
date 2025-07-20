@@ -66,7 +66,7 @@ export default function ChatWindow() {
         <Icon name="comments" size={64} color="rgba(255,255,255,0.2)" />
         <Text style={styles.welcomeTitle}>Welcome to EduLearn AI</Text>
         <Text style={styles.welcomeSubtitle}>
-          Ask me anything about your studies or homework.
+          {/* Ask me anything about your studies or homework. */}
         </Text>
       </View>
     );
@@ -87,9 +87,9 @@ export default function ChatWindow() {
             <View style={styles.emptyIconBg}>
               <Icon name="lightbulb-o" size={48} color="#4f46e5" />
             </View>
-            <Text style={styles.emptyTitle}>Start Learning!</Text>
+            <Text style={styles.emptyTitle}>Shoot your questions!</Text>
             <Text style={styles.emptyText}>
-              Ask me anything about your studies or explore a topic.
+              {/* Ask me anything about your studies or explore a topic. */}
             </Text>
           </View>
         ) : (

@@ -87,78 +87,52 @@ export default function ChatSidebar() {
     
     if (diffInHours < 24) {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    } else if (diffInHours < 168) { // 7 days
+    } else if (diffInHours < 168) {
       return date.toLocaleDateString([], { weekday: 'short' })
     } else {
       return date.toLocaleDateString([], { month: 'short', day: 'numeric' })
     }
   }
 
-  // Collapsed sidebar view
+  // When collapsed, return just a floating expand button
   if (!sidebarVisible) {
     return (
-      <View style={{
-        width: 60,
-        backgroundColor: '#1e1b4b',
-        borderRightWidth: 1,
-        borderRightColor: 'rgba(255,255,255,0.1)',
-        paddingVertical: 16
-      }}>
-        <TouchableOpacity
-          onPress={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
-          style={{
-            alignItems: 'center',
-            paddingVertical: 12,
-            marginBottom: 16
-          }}
-        >
-          <Icon name="bars" size={20} color="rgba(255,255,255,0.7)" />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handleNewChat}
-          style={{
-            alignItems: 'center',
-            paddingVertical: 12,
-            marginBottom: 16
-          }}
-        >
-          <View style={{
-            backgroundColor: '#4f46e5',
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
-            <Icon name="plus" size={16} color="white" />
-          </View>
-        </TouchableOpacity>
-
-        <ProfileSection 
-          onOpenSettings={() => setSettingsVisible(true)} 
-          isCollapsed={true}
-        />
-
-        <SettingsModal
-          visible={settingsVisible}
-          onClose={() => setSettingsVisible(false)}
-        />
-      </View>
+      <TouchableOpacity
+        onPress={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
+        style={{
+          position: 'absolute',
+          top: 12,
+          left: 12,
+          backgroundColor: '#4f46e5',
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          borderRadius: 20,
+          flexDirection: 'row',
+          alignItems: 'center',
+          zIndex: 1000,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+          elevation: 5
+        }}
+      >
+        <Icon name="bars" size={12} color="white" style={{ marginRight: 2 }} />
+      </TouchableOpacity>
     )
   }
 
-  // Full sidebar view
+  // Full sidebar view with reduced margins
   return (
     <View style={{
-      width: 280,
+      width: 260,
       backgroundColor: '#1e1b4b',
       borderRightWidth: 1,
       borderRightColor: 'rgba(255,255,255,0.1)'
     }}>
-      {/* Header */}
+      {/* Header with reduced padding */}
       <View style={{
-        padding: 16,
+        padding: 12,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(255,255,255,0.1)'
       }}>
@@ -166,19 +140,20 @@ export default function ChatSidebar() {
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: 16
+          marginBottom: 10
         }}>
           <Text style={{
             color: 'white',
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: 'bold'
           }}>
             EduLearn AI
           </Text>
           <TouchableOpacity
             onPress={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
+            style={{ padding: 4 }}
           >
-            <Icon name="chevron-left" size={16} color="rgba(255,255,255,0.7)" />
+            <Icon name="chevron-left" size={14} color="rgba(255,255,255,0.7)" />
           </TouchableOpacity>
         </View>
 
@@ -188,19 +163,19 @@ export default function ChatSidebar() {
           onPress={handleNewChat}
           style={{
             backgroundColor: '#4f46e5',
-            paddingVertical: 12,
-            paddingHorizontal: 16,
-            borderRadius: 12,
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+            borderRadius: 8,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: 16
+            marginBottom: 10
           }}
         >
-          <Icon name="plus" size={16} color="white" style={{ marginRight: 8 }} />
+          <Icon name="plus" size={14} color="white" style={{ marginRight: 6 }} />
           <Text style={{
             color: 'white',
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: '600'
           }}>
             New Chat
@@ -209,19 +184,19 @@ export default function ChatSidebar() {
 
         <View style={{
           backgroundColor: 'rgba(255,255,255,0.1)',
-          borderRadius: 8,
+          borderRadius: 6,
           flexDirection: 'row',
           alignItems: 'center',
-          paddingHorizontal: 12,
-          paddingVertical: 8
+          paddingHorizontal: 10,
+          paddingVertical: 6
         }}>
-          <Icon name="search" size={14} color="rgba(255,255,255,0.5)" />
+          <Icon name="search" size={12} color="rgba(255,255,255,0.5)" />
           <TextInput
             style={{
               flex: 1,
-              marginLeft: 8,
+              marginLeft: 6,
               color: 'white',
-              fontSize: 14
+              fontSize: 13
             }}
             placeholder="Search chats..."
             placeholderTextColor="rgba(255,255,255,0.5)"
@@ -231,35 +206,35 @@ export default function ChatSidebar() {
         </View>
       </View>
 
-      {/* Chat List */}
-      <ScrollView style={{ flex: 1, padding: 8 }}>
+      {/* Chat List with reduced padding */}
+      <ScrollView style={{ flex: 1, padding: 6 }}>
         {isLoading ? (
           <View style={{
             alignItems: 'center',
-            paddingVertical: 32
+            paddingVertical: 24
           }}>
             <ActivityIndicator size="large" color="#4f46e5" />
             <Text style={{
               color: 'rgba(255,255,255,0.7)',
-              marginTop: 8
+              marginTop: 6,
+              fontSize: 13
             }}>
               Loading your chats...
             </Text>
           </View>
         ) : (
           <>
-            {/* Starred Chats Section */}
             {filteredChats.filter(chat => chat.starred).length > 0 && (
               <>
                 <Text style={{
                   color: 'rgba(255,255,255,0.6)',
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: '600',
-                  marginLeft: 12,
-                  marginBottom: 8,
-                  marginTop: 8,
+                  marginLeft: 8,
+                  marginBottom: 4,
+                  marginTop: 4,
                   textTransform: 'uppercase',
-                  letterSpacing: 1
+                  letterSpacing: 0.5
                 }}>
                   ⭐ Starred
                 </Text>
@@ -282,16 +257,15 @@ export default function ChatSidebar() {
               </>
             )}
 
-            {/* Recent Chats Section */}
             <Text style={{
               color: 'rgba(255,255,255,0.6)',
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: '600',
-              marginLeft: 12,
-              marginBottom: 8,
-              marginTop: filteredChats.filter(chat => chat.starred).length > 0 ? 16 : 8,
+              marginLeft: 8,
+              marginBottom: 4,
+              marginTop: filteredChats.filter(chat => chat.starred).length > 0 ? 8 : 4,
               textTransform: 'uppercase',
-              letterSpacing: 1
+              letterSpacing: 0.5
             }}>
               💬 Recent
             </Text>
@@ -316,13 +290,13 @@ export default function ChatSidebar() {
             {filteredChats.length === 0 && !isLoading && (
               <View style={{
                 alignItems: 'center',
-                paddingVertical: 32
+                paddingVertical: 24
               }}>
-                <Icon name="comments-o" size={32} color="rgba(255,255,255,0.3)" />
+                <Icon name="comments-o" size={28} color="rgba(255,255,255,0.3)" />
                 <Text style={{
                   color: 'rgba(255,255,255,0.5)',
-                  fontSize: 14,
-                  marginTop: 8,
+                  fontSize: 13,
+                  marginTop: 6,
                   textAlign: 'center'
                 }}>
                   {searchQuery ? 'No chats found' : 'Start a new conversation!'}
@@ -341,7 +315,7 @@ export default function ChatSidebar() {
   )
 }
 
-// ChatItem component
+// ChatItem component with reduced padding
 const ChatItem = ({
   chat,
   currentChatId,
@@ -361,9 +335,10 @@ const ChatItem = ({
       backgroundColor: currentChatId === chat.id 
         ? 'rgba(79, 70, 229, 0.2)' 
         : 'transparent',
-      borderRadius: 12,
-      padding: 12,
-      marginBottom: 4,
+      borderRadius: 8,
+      padding: 8,
+      marginBottom: 2,
+      marginHorizontal: 2,
       borderWidth: currentChatId === chat.id ? 1 : 0,
       borderColor: currentChatId === chat.id 
         ? 'rgba(79, 70, 229, 0.5)' 
@@ -375,17 +350,17 @@ const ChatItem = ({
       alignItems: 'center',
       justifyContent: 'space-between'
     }}>
-      <View style={{ flex: 1, marginRight: 8 }}>
+      <View style={{ flex: 1, marginRight: 4 }}>
         {editingId === chat.id ? (
           <TextInput
             style={{
               color: 'white',
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: '500',
               backgroundColor: 'rgba(255,255,255,0.1)',
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              borderRadius: 6
+              paddingHorizontal: 6,
+              paddingVertical: 2,
+              borderRadius: 4
             }}
             value={editTitle}
             onChangeText={setEditTitle}
@@ -397,7 +372,7 @@ const ChatItem = ({
           <Text
             style={{
               color: 'white',
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: '500'
             }}
             numberOfLines={1}
@@ -407,8 +382,8 @@ const ChatItem = ({
         )}
         <Text style={{
           color: 'rgba(255,255,255,0.5)',
-          fontSize: 12,
-          marginTop: 2
+          fontSize: 11,
+          marginTop: 1
         }}>
           {formatTimestamp(chat.timestamp)}
         </Text>
@@ -420,27 +395,27 @@ const ChatItem = ({
       }}>
         <TouchableOpacity
           onPress={() => onStar(chat.id)}
-          style={{ padding: 4, marginRight: 4 }}
+          style={{ padding: 3, marginRight: 2 }}
         >
           <Icon
             name={chat.starred ? "star" : "star-o"}
-            size={14}
+            size={12}
             color={chat.starred ? "#fbbf24" : "rgba(255,255,255,0.5)"}
           />
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => onRename(chat.id, chat.title)}
-          style={{ padding: 4, marginRight: 4 }}
+          style={{ padding: 3, marginRight: 2 }}
         >
-          <Icon name="edit" size={14} color="rgba(255,255,255,0.5)" />
+          <Icon name="edit" size={12} color="rgba(255,255,255,0.5)" />
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => onDelete(chat.id)}
-          style={{ padding: 4 }}
+          style={{ padding: 3 }}
         >
-          <Icon name="trash" size={14} color="rgba(255,255,255,0.5)" />
+          <Icon name="trash" size={12} color="rgba(255,255,255,0.5)" />
         </TouchableOpacity>
       </View>
     </View>
